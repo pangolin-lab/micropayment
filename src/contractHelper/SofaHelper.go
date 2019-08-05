@@ -195,3 +195,31 @@ func SofaClaimCheck(sender *bind.TransactOpts,amount *big.Int,nonce *big.Int,v u
 		fmt.Println("cost gas: ",receipt.GasUsed)
 	}
 }
+
+func SofaCreateCheckSKAsm(sk string,to common.Address, amount *big.Int,nonce *big.Int, payContractAddress common.Address)(sig []byte ){
+	hash := solsha3.SoliditySHA3(
+		solsha3.Address(to),
+		solsha3.Uint256(amount),
+		solsha3.Uint256(nonce),
+		solsha3.Address(payContractAddress))
+	pkBytes, _ := hex.DecodeString(sk)
+	sig,_ = secp256k1.Sign(hash,pkBytes)
+	return
+}
+
+
+func SofaClaimCheckAsm(sender *bind.TransactOpts,amount *big.Int,nonce *big.Int,sig []byte , payToCheck *PayToCheck.PayToCheck){
+	ctx := context.Background()
+	conn:=ethutils.Conn(resource.Rawurl)
+	tx,err:= payToCheck.ClaimPaymentAsm(sender,amount,nonce,sig)
+
+	if err != nil {
+		log.Fatalf("test claim :%v", err)
+	}
+	receipt, err := bind.WaitMined(ctx, conn, tx)
+	if err != nil {
+		log.Fatalf("test claim error:%v", err)
+	}else{
+		fmt.Println("cost gas: ",receipt.GasUsed)
+	}
+}

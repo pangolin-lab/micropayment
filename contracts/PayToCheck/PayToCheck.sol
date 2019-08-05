@@ -30,6 +30,33 @@ contract PayToCheck {
         require(testRecoveryNoPrefix(message,v,r,s) == owner,"signature check failed");
         tokenContract.transfer(msg.sender,amount);
     }
+
+    function splitSignature(bytes memory sig) public pure returns (uint8 v, bytes32 r, bytes32 s)
+    {
+        require(sig.length == 65,"invalid sig length");
+        assembly {
+        // first 32 bytes, after the length prefix.
+            r := mload(add(sig, 32))
+        // second 32 bytes.
+            s := mload(add(sig, 64))
+        // final byte (first byte of the next 32 bytes).
+            v := byte(0, mload(add(sig, 96)))
+        }
+        return (v, r, s);
+    }
+
+    function claimPaymentAsm(uint256 amount, uint256 nonce,  bytes memory sig) public nonceValid(nonce){
+        usedNonces[nonce] = checkState.checked;
+        // this recreates the message that was signed on the client
+        bytes32 message = recreateMsg(msg.sender, amount, nonce,address(this));
+        (uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
+        if(v<27){
+            v+=27;
+        }
+        require(testRecoveryNoPrefix(message,v,r,s) == owner,"signature check failed");
+        tokenContract.transfer(msg.sender,amount);
+    }
+
     function recreateMsg(address add, uint256 amount, uint256 nonce,address contractAddress) public pure returns (bytes32){
         return keccak256(abi.encodePacked(add, amount, nonce,contractAddress));
     }
