@@ -9,17 +9,19 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	solsha3 "github.com/miguelmota/go-solidity-sha3"
+	"github.com/proton-lab/micropayment/contracts/PayToCheck"
+	"github.com/proton-lab/micropayment/contracts/CrowdSale"
+	"github.com/proton-lab/micropayment/contracts/CrowdSale"
+	"github.com/proton-lab/micropayment/contracts/Token"
+	"github.com/proton-lab/micropayment/contracts/Token"
+	"github.com/proton-lab/micropayment/src/ethutils"
+	"github.com/proton-lab/micropayment/src/resource"
+	"github.com/proton-lab/micropayment/src/utils"
 	"log"
 	"math/big"
-	"micropayment/contracts/PayToCheck"
-	"micropayment/contracts/SofaCrowdSale"
-	"micropayment/contracts/SofaToken"
-	"micropayment/src/ethutils"
-	"micropayment/src/resource"
-	"micropayment/src/utils"
 )
 
-func SofaBanlanceOf(token *SofaToken.SofaToken,address common.Address) {
+func BanlanceOf(token *Token.Token,address common.Address) {
 	balance, err := token.BalanceOf(nil, address)
 	if err != nil {
 		log.Fatalf("query balance error:%v", err)
@@ -27,7 +29,7 @@ func SofaBanlanceOf(token *SofaToken.SofaToken,address common.Address) {
 	fmt.Printf(address.String()+"'s balance is %s\n", balance)
 }
 
-func SofaTransfer(token *SofaToken.SofaToken,fromAuth *bind.TransactOpts, to common.Address, amount *big.Int){
+func Transfer(token *Token.Token,fromAuth *bind.TransactOpts, to common.Address, amount *big.Int){
 	conn:=ethutils.Conn(resource.Rawurl)
 	ctx := context.Background()
 	tx,err:=token.Transfer(&bind.TransactOpts{
@@ -44,12 +46,12 @@ func SofaTransfer(token *SofaToken.SofaToken,fromAuth *bind.TransactOpts, to com
 	}else{
 		fmt.Println("transaction \nfrom: ",fromAuth.From.String(),
 			"\nto: ",to.String(),
-			"\nwith SOFA amount: ", amount.String(),
+			"\nwith  amount: ", amount.String(),
 			"\ncost gas: ", receipt.GasUsed)
 	}
 }
 
-func SofaBuyToken(crowd *SofaCrowdSale.SofaCrowdSale,buyer *bind.TransactOpts, amount *big.Int){
+func BuyToken(crowd *CrowdSale.CrowdSale,buyer *bind.TransactOpts, amount *big.Int){
 	conn:=ethutils.Conn(resource.Rawurl)
 	ctx := context.Background()
 	tp,_:=crowd.TokenPrice(nil)
@@ -72,7 +74,7 @@ func SofaBuyToken(crowd *SofaCrowdSale.SofaCrowdSale,buyer *bind.TransactOpts, a
 
 }
 
-func SofaOpenMarket(crowd *SofaCrowdSale.SofaCrowdSale,admin *bind.TransactOpts, tokenPrice *big.Int){
+func OpenMarket(crowd *CrowdSale.CrowdSale,admin *bind.TransactOpts, tokenPrice *big.Int){
 	conn:=ethutils.Conn(resource.Rawurl)
 	ctx := context.Background()
 	//change tokenprice
@@ -101,7 +103,7 @@ func SofaOpenMarket(crowd *SofaCrowdSale.SofaCrowdSale,admin *bind.TransactOpts,
 	}
 }
 
-func SofaCreateCheckSK(sk string,to common.Address, amount *big.Int,nonce *big.Int, payContractAddress common.Address)(v uint8,r32 [32]byte,s32 [32]byte){
+func CreateCheckSK(sk string,to common.Address, amount *big.Int,nonce *big.Int, payContractAddress common.Address)(v uint8,r32 [32]byte,s32 [32]byte){
 	hash := solsha3.SoliditySHA3(
 		solsha3.Address(to),
 		solsha3.Uint256(amount),
@@ -127,38 +129,38 @@ func SofaCreateCheckSK(sk string,to common.Address, amount *big.Int,nonce *big.I
 }
 
 
-func RecoverSofaTokenContract()(*SofaToken.SofaToken,common.Address){
+func RecoverTokenContract()(*Token.Token,common.Address){
 	conn:=ethutils.Conn(resource.Rawurl)
 	jsonStr:=[]byte(utils.ReadTextAll(resource.Contractaddress))
 	var dat map[string]interface{}
 	if err := json.Unmarshal(jsonStr, &dat); err != nil {
 		panic(err)
 	}
-	address:=common.HexToAddress(dat["SofaToken"].(string))
-	token, err := SofaToken.NewSofaToken(address, conn)
+	address:=common.HexToAddress(dat["Token"].(string))
+	token, err := Token.NewToken(address, conn)
 	if err != nil {
 		log.Fatalf("Failed to instantiate a Token contract: %v", err)
 	}else{
-		fmt.Println("recover sofa token contract of address:\n",
-			dat["SofaToken"].(string))
+		fmt.Println("recover  token contract of address:\n",
+			dat["Token"].(string))
 	}
 	return token,address
 }
 
-func RecoverCrowdSaleContract()(*SofaCrowdSale.SofaCrowdSale,common.Address){
+func RecoverCrowdSaleContract()(*CrowdSale.CrowdSale,common.Address){
 	conn:=ethutils.Conn(resource.Rawurl)
 	jsonStr:=[]byte(utils.ReadTextAll(resource.Contractaddress))
 	var dat map[string]interface{}
 	if err := json.Unmarshal(jsonStr, &dat); err != nil {
 		panic(err)
 	}
-	address:= common.HexToAddress(dat["SofaCrowdSale"].(string))
-	crowd, err := SofaCrowdSale.NewSofaCrowdSale(address, conn)
+	address:= common.HexToAddress(dat["CrowdSale"].(string))
+	crowd, err := CrowdSale.NewCrowdSale(address, conn)
 	if err != nil {
 		log.Fatalf("Failed to instantiate a crowdsale contract: %v", err)
 	}else{
-		fmt.Println("recover sofa crowd sale contract of address:\n",
-			dat["SofaCrowdSale"].(string))
+		fmt.Println("recover  crowd sale contract of address:\n",
+			dat["CrowdSale"].(string))
 	}
 	return crowd,address
 }
@@ -175,13 +177,13 @@ func RecoverPayToCheckContract()(*PayToCheck.PayToCheck,common.Address)  {
 	if err != nil {
 		log.Fatalf("Failed to instantiate a payToCheck contract: %v", err)
 	}else{
-		fmt.Println("recover sofa payToCheck contract of address:\n",
+		fmt.Println("recover  payToCheck contract of address:\n",
 			dat["PayToCheck"].(string))
 	}
 	return payToCheck,address
 }
 
-func SofaClaimCheck(sender *bind.TransactOpts,amount *big.Int,nonce *big.Int,v uint8, r [32]byte,s [32]byte, payToCheck *PayToCheck.PayToCheck){
+func ClaimCheck(sender *bind.TransactOpts,amount *big.Int,nonce *big.Int,v uint8, r [32]byte,s [32]byte, payToCheck *PayToCheck.PayToCheck){
 	ctx := context.Background()
 	conn:=ethutils.Conn(resource.Rawurl)
 	tx,err:=payToCheck.ClaimPayment(sender,amount,nonce,v,r,s,)
@@ -196,7 +198,7 @@ func SofaClaimCheck(sender *bind.TransactOpts,amount *big.Int,nonce *big.Int,v u
 	}
 }
 
-func SofaCreateCheckSKAsm(sk string,to common.Address, amount *big.Int,nonce *big.Int, payContractAddress common.Address)(sig []byte ){
+func CreateCheckSKAsm(sk string,to common.Address, amount *big.Int,nonce *big.Int, payContractAddress common.Address)(sig []byte ){
 	hash := solsha3.SoliditySHA3(
 		solsha3.Address(to),
 		solsha3.Uint256(amount),
@@ -208,7 +210,7 @@ func SofaCreateCheckSKAsm(sk string,to common.Address, amount *big.Int,nonce *bi
 }
 
 
-func SofaClaimCheckAsm(sender *bind.TransactOpts,amount *big.Int,nonce *big.Int,sig []byte , payToCheck *PayToCheck.PayToCheck){
+func ClaimCheckAsm(sender *bind.TransactOpts,amount *big.Int,nonce *big.Int,sig []byte , payToCheck *PayToCheck.PayToCheck){
 	ctx := context.Background()
 	conn:=ethutils.Conn(resource.Rawurl)
 	tx,err:= payToCheck.ClaimPaymentAsm(sender,amount,nonce,sig)

@@ -8,24 +8,24 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/proton-lab/micropayment/contracts/PayToCheck"
+	"github.com/proton-lab/micropayment/contracts/CrowdSale"
+	"github.com/proton-lab/micropayment/contracts/Token"
+	"github.com/proton-lab/micropayment/src/ethutils"
+	"github.com/proton-lab/micropayment/src/resource"
+	"github.com/proton-lab/micropayment/src/utils"
 	"log"
 	"math/big"
-	"micropayment/contracts/PayToCheck"
-	"micropayment/contracts/SofaCrowdSale"
-	"micropayment/contracts/SofaToken"
-	"micropayment/src/ethutils"
-	"micropayment/src/resource"
-	"micropayment/src/utils"
 	"time"
 )
 
 
 
 func main(){
-	tokenAddress := deploySofaToken()
-	crowdAddress :=deploySofaCrowdSale(tokenAddress)
+	tokenAddress := deployToken()
+	crowdAddress := deployCrowdSale(tokenAddress)
 	payAddress:=deployMicroPayment(tokenAddress)
-	addressToSave := resource.SofaContractFamily{SofaToken:tokenAddress.String(),SofaCrowdSale:crowdAddress.String(),PayToCheck:payAddress.String()}
+	addressToSave := resource.ContractFamily{Token:tokenAddress.String(),CrowdSale:crowdAddress.String(),PayToCheck:payAddress.String()}
 	b, err := json.Marshal(addressToSave)
 	if err != nil {
 		fmt.Println(err)
@@ -35,16 +35,16 @@ func main(){
 
 }
 
-func deploySofaToken() common.Address{
+func deployToken() common.Address{
 	auth:= ethutils.Auth(resource.Keypath, resource.Passpath)
 	// Create an IPC based RPC connection to a remote node and an authorized transactor
 	conn:=ethutils.Conn(resource.Rawurl)
 	// Deploy a new awesome contract for the binding demo
-	address, tx, token, err := SofaToken.DeploySofaToken(auth[0], conn, big.NewInt(1000000000000))
+	address, tx, token, err := Token.DeployToken(auth[0], conn, big.NewInt(1000000000000))
 	if err != nil {
 		log.Fatalf("Failed to deploy new token contract: %v", err)
 	}
-	fmt.Printf("SofaToken Contract pending deploy: 0x%x\n", address)
+	fmt.Printf("Token Contract pending deploy: 0x%x\n", address)
 	fmt.Printf("Transaction waiting to be mined: 0x%x\n\n", tx.Hash())
 	startTime := time.Now()
 	fmt.Printf("TX start @:%s", time.Now())
@@ -65,16 +65,16 @@ func deploySofaToken() common.Address{
 	return addressAfterMined;
 }
 
-func deploySofaCrowdSale(tokenAddress common.Address) common.Address{
+func deployCrowdSale(tokenAddress common.Address) common.Address{
 	auth:= ethutils.Auth(resource.Keypath, resource.Passpath)
 	// Create an IPC based RPC connection to a remote node and an authorized transactor
 	conn:=ethutils.Conn(resource.Rawurl)
 	// Deploy a new awesome contract for the binding demo
-	address, tx, crowd, err := SofaCrowdSale.DeploySofaCrowdSale(auth[0], conn, tokenAddress,big.NewInt(1000000000000000))
+	address, tx, crowd, err := CrowdSale.DeployCrowdSale(auth[0], conn, tokenAddress,big.NewInt(1000000000000000))
 	if err != nil {
 		log.Fatalf("Failed to deploy new token contract: %v", err)
 	}
-	fmt.Printf("SofaCrowdSale Contract pending deploy: 0x%x\n", address)
+	fmt.Printf("CrowdSale Contract pending deploy: 0x%x\n", address)
 	fmt.Printf("Transaction waiting to be mined: 0x%x\n\n", tx.Hash())
 	startTime := time.Now()
 	fmt.Printf("TX start @:%s", time.Now())

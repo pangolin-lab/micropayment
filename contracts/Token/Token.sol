@@ -27,15 +27,15 @@ import "./math/SafeMath.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract SofaToken is IERC20 {
+contract Token is IERC20 {
     using SafeMath for uint256;
 
     mapping (address => uint256) private _balances;
 
     mapping (address => mapping (address => uint256)) private _allowances;
 
-    string  public name = "Sofa Token";
-    string  public symbol = "SOFA";
+    string  public name = "Token";
+    string  public symbol = "T";
 
     uint256 private _totalSupply;
 

@@ -1,20 +1,20 @@
 pragma solidity >=0.4.24 <0.7.0;
 
-import "./SofaToken.sol";
+import "./Token.sol";
 
-contract SofaCrowdSale {
+contract CrowdSale {
     using SafeMath for uint256;
     address private admin;
-    SofaToken public tokenContract;
+    Token public tokenContract;
     uint256 public tokenSold;
     uint256 public tokenPrice;
     bool public saleOpen;
 
     event Sell(address _buyer, uint256 amount);
 
-    constructor(SofaToken _sofaToken, uint256 _initalPrice) public {
+    constructor(Token _Token, uint256 _initalPrice) public {
         admin = msg.sender;
-        tokenContract = _sofaToken;
+        tokenContract = _Token;
         tokenPrice = _initalPrice;
     }
 

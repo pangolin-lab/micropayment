@@ -4,9 +4,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/proton-lab/micropayment/src/utils"
 	"io/ioutil"
 	"log"
-	"micropayment/src/utils"
 	"strings"
 )
 

@@ -1,15 +1,15 @@
 pragma solidity >=0.4.24 <0.7.0;
 
-import "./SofaToken.sol";
+import "./Token.sol";
 
 contract PayToCheck {
     address owner = msg.sender;
     mapping(uint256 => checkState) usedNonces;
-    SofaToken public tokenContract;
+    Token public tokenContract;
     enum checkState {valid,checked}
 
-    constructor(SofaToken _sofaToken) public {
-        tokenContract = _sofaToken;
+    constructor(Token _Token) public {
+        tokenContract = _Token;
     }
 
     modifier onlyOwner(){
